@@ -1,46 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import { spawn } from 'node:child_process';
-import { FileApiKeyStore } from '../src/auth.js';
-
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-async function tempDir() { return fs.mkdtemp(path.join(os.tmpdir(), 'once-server-test-')); }
-
-async function startServer(dataDir) {
-  const port = 19000 + Math.floor(Math.random() * 3000);
-  const child = spawn(process.execPath, ['src/server.js'], {
-    cwd: path.resolve('.'), env: { ...process.env, ONCE_DATA_DIR: dataDir, PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe']
-  });
-  for (let i = 0; i < 50; i++) {
-    try {
-      const r = await fetch(`http://127.0.0.1:${port}/health`);
-      if (r.ok) return { child, port };
-    } catch {}
-    await delay(40);
-  }
-  child.kill();
-  throw new Error('Server did not start');
-}
-
-test('server rejects missing API keys and exposes authenticated usage', async () => {
-  const dir = await tempDir();
-  const keyStore = new FileApiKeyStore({ dataDir: dir });
-  const issued = await keyStore.issue({ name: 'server-test', monthlyQuota: 3 });
-  const { child, port } = await startServer(dir);
-  try {
-    const denied = await fetch(`http://127.0.0.1:${port}/v1/usage`);
-    assert.equal(denied.status, 401);
-    const ok = await fetch(`http://127.0.0.1:${port}/v1/usage`, { headers: { authorization: `Bearer ${issued.apiKey}` } });
-    assert.equal(ok.status, 200);
-    const body = await ok.json();
-    assert.equal(body.quota, 3);
-    assert.equal(body.usage.calls, 0);
-    assert.equal(body.remaining, 3);
-  } finally {
-    child.kill();
-    await fs.rm(dir, { recursive: true, force: true });
-  }
-});
+import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';import {spawn} from 'node:child_process';import {FileApiKeyStore} from '../src/auth.js';
+const delay=ms=>new Promise(r=>setTimeout(r,ms));async function tempDir(){return fs.mkdtemp(path.join(os.tmpdir(),'once-server-test-'))}async function startServer(dataDir){const port=19000+Math.floor(Math.random()*3000),child=spawn(process.execPath,['src/server.js'],{cwd:path.resolve('.'),env:{...process.env,ONCE_DATA_DIR:dataDir,PORT:String(port)},stdio:['ignore','pipe','pipe']});for(let i=0;i<50;i++){try{const r=await fetch(`http://127.0.0.1:${port}/health`);if(r.ok)return {child,port}}catch{}await delay(40)}child.kill();throw new Error('Server did not start')}
+test('server rejects missing API keys and exposes authenticated usage',async()=>{const dir=await tempDir(),keyStore=new FileApiKeyStore({dataDir:dir}),issued=await keyStore.issue({name:'server-test',monthlyQuota:3}),{child,port}=await startServer(dir);try{const denied=await fetch(`http://127.0.0.1:${port}/v1/usage`);assert.equal(denied.status,401);const ok=await fetch(`http://127.0.0.1:${port}/v1/usage`,{headers:{authorization:`Bearer ${issued.apiKey}`}}),body=await ok.json();assert.equal(ok.status,200);assert.equal(body.quota,3);assert.equal(body.usage.calls,0);assert.equal(body.remaining,3)}finally{child.kill();await fs.rm(dir,{recursive:true,force:true})}});
+test('self-serve trial issues a usable limited key and stats record adoption',async()=>{const dir=await tempDir(),{child,port}=await startServer(dir);try{const trial=await fetch(`http://127.0.0.1:${port}/v1/trial`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:'test-developer'})});assert.equal(trial.status,201);const t=await trial.json();assert.match(t.apiKey,/^once_live_/);assert.equal(t.monthlyQuota,100);const usage=await fetch(`http://127.0.0.1:${port}/v1/usage`,{headers:{authorization:`Bearer ${t.apiKey}`}});assert.equal(usage.status,200);await fetch(`http://127.0.0.1:${port}/v1/demo`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:'adoption-proof'})});await fetch(`http://127.0.0.1:${port}/v1/demo`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:'adoption-proof'})});const stats=await (await fetch(`http://127.0.0.1:${port}/v1/stats`)).json();assert.equal(stats.trialKeysIssued,1);assert.equal(stats.demoCalls,2);assert.equal(stats.duplicatesSuppressed,1)}finally{child.kill();await fs.rm(dir,{recursive:true,force:true})}});
