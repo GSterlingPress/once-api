@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.GSterlingPress/once",
+  "title": "ONCE",
+  "description": "Prevent AI agents from accidentally repeating consequential external actions by combining idempotency, verify-before-retry behavior, authoritative postcondition checks, and durable receipts.",
+  "version": "0.5.0",
+  "repository": {
+    "url": "https://github.com/GSterlingPress/once-api",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://optimistic-compassion-production.up.railway.app/mcp"
+    }
+  ]
+}
