@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: once-api
+    runtime: docker
+    healthCheckPath: /ready
+    envVars:
+      - key: ONCE_DATA_DIR
+        value: /var/data/once
+      - key: ONCE_ALLOW_PRIVATE_NETWORK
+        value: "false"
+    disk:
+      name: once-data
+      mountPath: /var/data
+      sizeGB: 1

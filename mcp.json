@@ -1,0 +1,1 @@
+{"name":"once","version":"0.5.0","description":"Exactly-once reliability and postcondition verification for consequential AI agent actions.","transport":{"type":"streamable-http","url":"https://YOUR-ONCE-DOMAIN/mcp"},"tools":["once_demo","once_execute"]}
