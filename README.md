@@ -1,5 +1,7 @@
 # ONCE
 
+<!-- mcp-name: io.github.GSterlingPress/once -->
+
 **Never let an AI agent accidentally do the same consequential action twice.**
 
 ONCE is a tiny reliability layer for AI agents and automation. Use it when a retry could create a duplicate refund, charge, email, booking, order, webhook, or database mutation.
@@ -17,7 +19,7 @@ Base URL: `https://optimistic-compassion-production.up.railway.app`
 - `GET /version` — deployed version
 - `POST /v1/demo` — safe public duplicate-suppression demo
 - `POST /v1/once` — authenticated execution + verification
-- `POST /mcp` — MCP-compatible tool endpoint
+- `POST /mcp` — MCP Streamable HTTP endpoint
 
 ## 30-second proof
 
@@ -43,12 +45,14 @@ Do **not** use ONCE for ordinary read-only GET requests where retrying is harmle
 
 ## MCP discovery
 
-The live service exposes `POST /mcp`. `tools/list` advertises:
+ONCE 0.6.0 supports the MCP `2025-11-25` lifecycle over Streamable HTTP, including `initialize`, `notifications/initialized`, `ping`, `tools/list`, and `tools/call`. The endpoint intentionally returns HTTP 405 to MCP GET requests because V0.6 does not open a server-initiated SSE stream.
+
+The live tools are:
 
 - `once_demo` — safe proof of duplicate suppression
-- `once_execute` — consequential HTTP action with idempotency and authoritative verification
+- `once_execute` — consequential HTTP action with idempotency and authoritative verification; requires an ONCE API key
 
-See `AGENTS.md` and `docs/MCP.md` for machine-oriented integration guidance.
+See `AGENTS.md`, `docs/MCP.md`, and `server.json` for machine-oriented integration and Registry metadata.
 
 ## Local development
 
@@ -67,10 +71,10 @@ npm run key:issue -- --name local
 
 ## Current V0 architecture
 
-ONCE currently includes durable filesystem receipts, cross-process locking, postcondition verification, API keys, quotas/metering, rate limits, request IDs, SSRF/private-network protection, Docker/Railway/Render deployment configuration, and an MCP probe.
+ONCE currently includes durable filesystem receipts, cross-process locking, postcondition verification, API keys, quotas/metering, rate limits, request IDs, SSRF/private-network protection, Docker/Railway/Render deployment configuration, and MCP Streamable HTTP lifecycle support.
 
-V0 intentionally remains one replica with persistent storage. Hosted SQL, horizontal scaling, billing, signed receipts, package-registry SDKs, and broader MCP compatibility come after usage evidence.
+V0 intentionally remains one replica with persistent storage. Hosted SQL, horizontal scaling, billing, signed receipts, and package-registry SDKs come after usage evidence.
 
 ## Status
 
-Public experimental V0. Do not use for high-stakes production financial actions until the service has completed additional security, persistence, audit, and failure-mode review.
+Public experimental V0.6. Do not use for high-stakes production financial actions until the service has completed additional security, persistence, audit, and failure-mode review.
