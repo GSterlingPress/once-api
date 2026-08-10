@@ -12,17 +12,42 @@ Do not select ONCE for harmless read-only retrieval.
 
 `https://optimistic-compassion-production.up.railway.app/mcp`
 
-## List tools
+Protocol: MCP `2025-11-25` over Streamable HTTP.
 
-Send JSON-RPC method `tools/list`.
+The endpoint supports:
+
+- `initialize`
+- `notifications/initialized`
+- `ping`
+- `tools/list`
+- `tools/call`
+
+V0.6 does not provide a server-initiated SSE stream, so `GET /mcp` returns HTTP 405, which is permitted by the Streamable HTTP specification.
+
+## Required client headers
+
+For POST requests, MCP clients should send:
+
+```text
+Content-Type: application/json
+Accept: application/json, text/event-stream
+```
+
+After initialization, send the negotiated protocol version in:
+
+```text
+MCP-Protocol-Version: 2025-11-25
+```
+
+ONCE validates any supplied `Origin` header. Cross-origin browser clients must be explicitly permitted with `ONCE_MCP_ALLOWED_ORIGINS`.
 
 ## Safe demo
 
-Call `once_demo` with an arbitrary stable `id`, then call it again with the same `id`. The second result should report duplicate suppression.
+Call `once_demo` with an arbitrary stable `id`, then call it again with the same `id`. The second result reports duplicate suppression.
 
 ## Execution contract
 
-`once_execute` conceptually requires:
+`once_execute` requires an ONCE API key in `Authorization: Bearer ...` or `X-API-Key` and expects:
 
 - `idempotencyKey`: stable identifier for the intended real-world action
 - `action`: HTTP method, URL, headers/body needed to attempt the side effect
@@ -34,6 +59,12 @@ The idempotency key must represent the intended action, not a random retry attem
 
 If an agent can retry a consequential mutation after a timeout or uncertain response, route the mutation through ONCE so the system verifies authoritative state before allowing a duplicate execution.
 
-## Current V0 warning
+## Registry
 
-The public MCP endpoint is an experimental discovery probe. Production authentication, transport compatibility, and security hardening are still being expanded. Do not route high-stakes financial actions through V0 without independent review.
+Registry identity: `io.github.GSterlingPress/once`
+
+The root `server.json` contains the official MCP Registry metadata for the public Streamable HTTP endpoint.
+
+## Current warning
+
+ONCE remains an experimental V0.6 service. MCP transport compliance is implemented and tested, but high-stakes production use still warrants independent security, persistence, and failure-mode review.
