@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.GSterlingPress/once",
   "title": "ONCE",
-  "description": "Prevents AI agents from accidentally repeating consequential external actions by combining stable idempotency, verify-before-retry behavior, authoritative postcondition checks, and durable receipts.",
+  "description": "Prevent duplicate AI-agent side effects with idempotency, postcondition checks, and durable receipts.",
   "version": "0.6.0",
   "repository": {
     "url": "https://github.com/GSterlingPress/once-api",
