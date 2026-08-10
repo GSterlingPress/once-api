@@ -15,63 +15,46 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Node
-        uses: actions/setup-node@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: '20'
-
       - name: Run ONCE test suite
         run: npm test
-
+      - name: Read release version
+        id: version
+        shell: bash
+        run: echo "value=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
       - name: Wait for live Railway deployment
         shell: bash
         run: |
           set -euo pipefail
           BASE='https://optimistic-compassion-production.up.railway.app'
+          WANT='${{ steps.version.outputs.value }}'
           for i in $(seq 1 40); do
             VERSION_JSON=$(curl -fsS --max-time 10 "$BASE/version" || true)
-            if echo "$VERSION_JSON" | grep -q '"version":"0.6.0"'; then
-              echo "Live ONCE 0.6.0 detected"
-              exit 0
-            fi
-            echo "Waiting for Railway deployment ($i/40)..."
-            sleep 5
+            if echo "$VERSION_JSON" | grep -q "\"version\":\"$WANT\""; then echo "Live ONCE $WANT detected"; exit 0; fi
+            echo "Waiting for Railway deployment ($i/40)..."; sleep 5
           done
-          echo 'Railway did not expose ONCE 0.6.0 in time' >&2
           exit 1
-
       - name: Validate live MCP initialize handshake
         shell: bash
         run: |
           set -euo pipefail
+          WANT='${{ steps.version.outputs.value }}'
           BODY='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"once-registry-check","version":"1.0.0"}}}'
-          RESPONSE=$(curl -fsS --max-time 15 \
-            -X POST 'https://optimistic-compassion-production.up.railway.app/mcp' \
-            -H 'content-type: application/json' \
-            -H 'accept: application/json, text/event-stream' \
-            --data "$BODY")
-          echo "$RESPONSE"
+          RESPONSE=$(curl -fsS --max-time 15 -X POST 'https://optimistic-compassion-production.up.railway.app/mcp' -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' --data "$BODY")
           echo "$RESPONSE" | grep -q '"protocolVersion":"2025-11-25"'
           echo "$RESPONSE" | grep -q '"name":"once"'
-          echo "$RESPONSE" | grep -q '"version":"0.6.0"'
-
+          echo "$RESPONSE" | grep -q "\"version\":\"$WANT\""
       - name: Install official MCP publisher
-        run: |
-          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
-          ./mcp-publisher --help
-
+        run: curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
       - name: Validate Registry metadata
         run: ./mcp-publisher validate
-
       - name: Authenticate with MCP Registry using GitHub OIDC
         run: ./mcp-publisher login github-oidc
-
-      - name: Publish ONCE 0.6.0
+      - name: Publish ONCE
         run: ./mcp-publisher publish
-
       - name: Verify Registry discovery
         shell: bash
         run: |
