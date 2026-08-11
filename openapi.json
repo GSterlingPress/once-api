@@ -1,0 +1,26 @@
+{
+  "openapi":"3.1.0",
+  "info":{
+    "title":"ONCE",
+    "version":"0.8.0",
+    "description":"Exactly-once reliability and postcondition verification for consequential AI-agent actions."
+  },
+  "servers":[{"url":"https://optimistic-compassion-production.up.railway.app"}],
+  "paths":{
+    "/v1/once":{
+      "post":{
+        "operationId":"onceExecute",
+        "summary":"Execute a consequential external side effect once and verify the result",
+        "security":[{"bearerAuth":[]}],
+        "requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","required":["idempotencyKey","action","verify"],"properties":{"idempotencyKey":{"type":"string"},"action":{"type":"object","required":["method","url"],"properties":{"method":{"type":"string"},"url":{"type":"string","format":"uri"},"headers":{"type":"object"},"body":{}}},"verify":{"type":"object","required":["url","path"],"properties":{"url":{"type":"string","format":"uri"},"path":{"type":"string"},"equals":{}}}}}}}},
+        "responses":{"200":{"description":"Action verified"},"202":{"description":"Outcome not yet verified"},"401":{"description":"API key required"},"429":{"description":"Quota or rate limit exceeded"}}
+      }
+    },
+    "/v1/demo":{"post":{"operationId":"onceDemo","summary":"Safe duplicate-suppression demo","responses":{"200":{"description":"Demo receipt"}}}},
+    "/v1/trial":{"post":{"operationId":"onceTrial","summary":"Issue a limited self-serve trial key","responses":{"201":{"description":"Trial key issued"},"429":{"description":"Trial rate limit exceeded"}}}},
+    "/v1/activity":{"get":{"operationId":"onceActivity","summary":"Privacy-safe external usage telemetry","responses":{"200":{"description":"Activity summary"}}}},
+    "/health":{"get":{"operationId":"onceHealth","responses":{"200":{"description":"Healthy"}}}},
+    "/ready":{"get":{"operationId":"onceReady","responses":{"200":{"description":"Ready"}}}}
+  },
+  "components":{"securitySchemes":{"bearerAuth":{"type":"http","scheme":"bearer"}}}
+}
