@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - server.json
+      - .github/workflows/publish-mcp.yml
 
 permissions:
   contents: read
@@ -24,13 +25,17 @@ jobs:
       - name: Read release version
         id: version
         shell: bash
-        run: echo "value=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+        run: |
+          VERSION=$(node -e "process.stdout.write(require('./package.json').version)")
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Release version: $VERSION"
       - name: Wait for live Railway deployment
         shell: bash
         run: |
           set -euo pipefail
           BASE='https://optimistic-compassion-production.up.railway.app'
           WANT='${{ steps.version.outputs.value }}'
+          test -n "$WANT"
           for i in $(seq 1 40); do
             VERSION_JSON=$(curl -fsS --max-time 10 "$BASE/version" || true)
             if echo "$VERSION_JSON" | grep -q "\"version\":\"$WANT\""; then echo "Live ONCE $WANT detected"; exit 0; fi
