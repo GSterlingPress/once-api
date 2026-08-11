@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.GSterlingPress/once",
   "title": "ONCE",
-  "description": "Stop duplicate AI-agent side effects with idempotency, postcondition checks, and durable receipts.",
-  "version": "0.7.0",
+  "description": "Stop duplicate AI-agent side effects with idempotency, postcondition checks, durable receipts, and privacy-safe usage visibility.",
+  "version": "0.8.0",
   "repository": {"url": "https://github.com/GSterlingPress/once-api", "source": "github"},
   "remotes": [{"type": "streamable-http", "url": "https://optimistic-compassion-production.up.railway.app/mcp"}]
 }
