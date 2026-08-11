@@ -1,9 +1,10 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.GSterlingPress/once",
-  "title": "ONCE",
-  "description": "Prevent duplicate AI-agent side effects with idempotency, verification, and durable receipts.",
-  "version": "0.8.0",
+  "title": "ONCE — Prevent Duplicate Agent Actions",
+  "description": "Call before an AI agent performs or retries a consequential side effect such as a purchase, refund, payment, booking, send, create, modify, submit, or delete. ONCE executes with idempotency, verifies post-state, and suppresses verified retries.",
+  "version": "0.8.1",
+  "websiteUrl": "https://github.com/GSterlingPress/once-api",
   "repository": {"url": "https://github.com/GSterlingPress/once-api", "source": "github"},
   "remotes": [{"type": "streamable-http", "url": "https://optimistic-compassion-production.up.railway.app/mcp"}]
 }
