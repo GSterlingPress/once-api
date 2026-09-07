@@ -60,9 +60,21 @@ jobs:
         run: ./mcp-publisher login github-oidc
       - name: Publish ONCE
         run: ./mcp-publisher publish
-      - name: Verify Registry discovery
+      - name: Verify Registry discovery and canonical remote
         shell: bash
         run: |
-          sleep 3
-          curl -fsS 'https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.GSterlingPress/once' | tee registry-result.json
-          grep -q 'io.github.GSterlingPress/once' registry-result.json
+          set -euo pipefail
+          WANT='https://optimistic-compassion-production.up.railway.app/mcp'
+          NAME='io.github.GSterlingPress/once'
+          for i in $(seq 1 12); do
+            BODY=$(curl -fsS --max-time 20 'https://registry.modelcontextprotocol.io/v0/servers?search=io.github.GSterlingPress%2Fonce' || true)
+            if printf '%s' "$BODY" | grep -Fq "\"name\":\"$NAME\"" && printf '%s' "$BODY" | grep -Fq "\"url\":\"$WANT\""; then
+              printf '%s\n' "$BODY" > registry-result.json
+              echo "Official Registry exposes ONCE at $WANT"
+              exit 0
+            fi
+            echo "Waiting for registry propagation ($i/12)..."
+            sleep 10
+          done
+          echo "Official Registry did not expose the expected ONCE remote endpoint in time" >&2
+          exit 1
