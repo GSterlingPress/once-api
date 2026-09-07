@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [server.json]
+    paths: [server.json, .github/workflows/publish-mcp-registry.yml]
 permissions:
   id-token: write
   contents: read
@@ -15,7 +15,26 @@ jobs:
       - name: Install mcp-publisher
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+      - name: Validate server metadata
+        run: ./mcp-publisher validate
       - name: Authenticate with GitHub OIDC
         run: ./mcp-publisher login github-oidc
       - name: Publish server metadata
         run: ./mcp-publisher publish
+      - name: Verify canonical remote in Official MCP Registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          WANT='https://optimistic-compassion-production.up.railway.app/mcp'
+          NAME='io.github.GSterlingPress/once'
+          for i in $(seq 1 12); do
+            BODY=$(curl -fsS --max-time 20 "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.GSterlingPress%2Fonce" || true)
+            if printf '%s' "$BODY" | grep -Fq "\"name\":\"$NAME\"" && printf '%s' "$BODY" | grep -Fq "\"url\":\"$WANT\""; then
+              echo "Official Registry now points ONCE at $WANT"
+              exit 0
+            fi
+            echo "Waiting for registry propagation ($i/12)..."
+            sleep 10
+          done
+          echo "Official Registry did not expose the expected ONCE remote endpoint in time" >&2
+          exit 1
