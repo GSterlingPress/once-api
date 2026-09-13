@@ -3,8 +3,16 @@
   "name": "io.github.GSterlingPress/once",
   "title": "ONCE — Exactly-Once Reliability for AI Agent Actions",
   "description": "Prevent duplicate AI-agent side effects with idempotency, verification, and durable receipts.",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "websiteUrl": "https://github.com/GSterlingPress/once-api",
-  "repository": {"url": "https://github.com/GSterlingPress/once-api", "source": "github"},
-  "remotes": [{"type": "streamable-http", "url": "https://optimistic-compassion-production.up.railway.app/mcp"}]
+  "repository": {
+    "url": "https://github.com/GSterlingPress/once-api",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://optimistic-compassion-production.up.railway.app/mcp"
+    }
+  ]
 }
